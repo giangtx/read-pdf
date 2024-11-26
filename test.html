@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <style>
+            canvas {
+                border: 1px solid #000
+            }
+        </style>
+
+    </head>
+    <body>
+        <canvas id="cnv" height="500" width="500"></canvas>
+        <script
+          src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"
+          integrity="sha512-CeIsOAsgJnmevfCi2C7Zsyy6bQKi43utIjdA87Q0ZY84oDqnI0uwfM9+bKiIkI75lUeI00WG/+uJzOmuHlesMA=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"
+        ></script>
+        <script>
+            var canvas = new fabric.Canvas("cnv");
+            fabric.loadSVGFromURL('./Green Watercolour Opening Soon Banner.svg', function(objects, options) {
+              console.log('options', options);
+              console.log('objects', objects);
+              canvas.setWidth(options.width);
+              canvas.setHeight(options.height);
+              objects.forEach(function(obj) {
+
+                // obj.scaleToWidth(1000);
+                // obj.scaleToHeight(1000 * (options.height / options.width));
+                canvas.add(obj).renderAll();
+              });
+            });
+        </script>
+    </body>
+</html>

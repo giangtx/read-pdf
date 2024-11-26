@@ -1,0 +1,88 @@
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+	<meta charset="utf-8" />
+	<title>Exploding SVG Elements into Distinct, Focused Images</title>
+	<style type="text/css">
+		body { background:#eee; margin:2em 4em; text-align:center; }
+		svg {
+			background:#fff; border:1px solid #ccc;
+			display:block; margin:1em auto;
+			width:80%; height:250px;
+		}
+	</style>
+</head><body>
+	<p>Showcasing JavaScript to automatically move SVG elements into a new SVG whose <code>viewBox</code> is set to exactly encapsulate the element.</p>
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="-52.2 -33.9 314 308">
+		<style type="text/css">
+			.st0{opacity:0.8;fill:#D361A4;stroke:#000000;}
+			.st1{opacity:0.8;fill:#85CA9B;stroke:#000000;}
+			.st2{opacity:0.8;fill:#7AA2D5;stroke:#000000;}
+			.st3{opacity:0.8;fill:#F05455;stroke:#000000;}
+		</style>
+		<rect x="0.5" y="22.6" class="st3" width="103.1" height="103.1"/>
+		<rect x="73.5" y="22.2" transform="matrix(0.7071 0.7071 -0.7071 0.7071 89.1474 -66.9885)" class="st1" width="103.8" height="103.8"/>
+		<g>
+			<circle class="st2" cx="125.4" cy="147.5" r="73.4"/>
+			<circle class="st2" cx="160.0" cy="160.0" r="20.0"/>
+		</g>
+		<polygon class="st0" points="125.4,191.6 132,211.9 153.3,211.9 136.1,224.4 142.7,244.6 125.4,232.1 108.2,244.6 114.8,224.4 97.6,211.9 118.9,211.9 "/>
+	</svg>
+
+	<p>Written to support <a href="http://stackoverflow.com/a/10622445/405017">this Stack Overflow answer</a>. Copyright ©2012 <a href="!@phrogz.net">Gavin Kistner</a>.</p>
+
+	<script type="text/javascript">
+		// Find all the root elements of the original SVG file
+		var roots = document.querySelectorAll('svg > *');
+		for (var i=roots.length;i--;){
+			if (roots[i].tagName=='style') continue;
+			// Create and append a focused wrapper for each element
+			document.body.appendChild(elementToSVG(roots[i]));
+		}
+		
+		// Create a new SVG wrapping around a copy of the element
+		// with the viewBox set to encompass the element exactly
+		function elementToSVG(el){
+			var old = el.ownerSVGElement,
+			    svg = document.createElementNS(old.namespaceURI,'svg'),
+			    css = old.querySelectorAll('style,defs');
+
+			// Preserve elements likely needed for correct appearance
+			[].forEach.call(css,copyToNewSVG);
+			copyToNewSVG(el);
+			var bb = globalBoundingBox(el);
+			svg.setAttribute('viewBox',[bb.x,bb.y,bb.width,bb.height].join(' '));
+			return svg;
+
+			function copyToNewSVG(e){
+				svg.appendChild(e.cloneNode(true));
+			}
+		}
+
+		// Calculate the bounding box of an element in global SVG space
+		// accounting for transforms applied to the element
+		function globalBoundingBox(el){
+			var bb  = el.getBBox(),
+			    svg = el.ownerSVGElement,
+			    m   = el.getTransformToElement(svg);
+			var pts = [
+				svg.createSVGPoint(), svg.createSVGPoint(),
+				svg.createSVGPoint(), svg.createSVGPoint()
+			];
+			pts[0].x=bb.x;          pts[0].y=bb.y;
+			pts[1].x=bb.x+bb.width; pts[1].y=bb.y;
+			pts[2].x=bb.x+bb.width; pts[2].y=bb.y+bb.height;
+			pts[3].x=bb.x;          pts[3].y=bb.y+bb.height;
+
+			var xMin=Infinity,xMax=-Infinity,yMin=Infinity,yMax=-Infinity;
+			pts.forEach(function(pt){
+				pt = pt.matrixTransform(m);
+				xMin = Math.min(xMin,pt.x);
+				xMax = Math.max(xMax,pt.x);
+				yMin = Math.min(yMin,pt.y);
+				yMax = Math.max(yMax,pt.y);
+			});
+
+			bb.x = xMin; bb.width  = xMax-xMin;
+			bb.y = yMin; bb.height = yMax-yMin;
+			return bb;
+		}</script>
+</body></html>
